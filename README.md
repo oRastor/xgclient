@@ -1,6 +1,6 @@
-# xG Client
+# Python xG Client
 
-PHP client for [football (soccer) expected goals (xG) statistics API](https://rapidapi.com/Wolf1984/api/football-xg-statistics/).
+Python client for [football (soccer) expected goals (xG) statistics API](https://rapidapi.com/Wolf1984/api/football-xg-statistics/).
 It provides a list of events with xG metric for every game of more than 80 leagues.
 
 ## Usage
