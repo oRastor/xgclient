@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name="xgclient",
-    version="0.1.2",
+    version="0.1.3",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     url="https://github.com/oRastor/xgclient",

@@ -67,7 +67,7 @@ class FixtureSchema(Schema):
     tournament = fields.Nested(TournamentSchema)
     season = fields.Nested(SeasonSchema)
     events = fields.Nested(EventSchema, many=True, default=[])
-    odds = fields.Nested(EventSchema, many=True, default=[])
+    odds = fields.Nested(OddsSchema, many=True, default=[])
 
 
 class ExpectedGoalsClient:
