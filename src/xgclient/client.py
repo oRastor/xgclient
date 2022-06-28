@@ -85,12 +85,12 @@ class ExpectedGoalsClient:
         return CountrySchema().dump(json['result'], many=True)
 
     def tournaments(self, country_id: int):
-        json = self.request(str.join('', [self.base_url, '/countries/', str(country_id), '/leagues/']))
+        json = self.request(str.join('', [self.base_url, '/countries/', str(country_id), '/tournaments/']))
 
         return TournamentSchema().dump(json['result'], many=True)
 
     def seasons(self, tournament_id: int):
-        json = self.request(str.join('', [self.base_url, '/leagues/', str(tournament_id), '/seasons/']))
+        json = self.request(str.join('', [self.base_url, '/tournaments/', str(tournament_id), '/seasons/']))
 
         return SeasonSchema().dump(json['result'], many=True)
 
