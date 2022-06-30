@@ -70,6 +70,10 @@ class FixtureSchema(Schema):
     odds = fields.Nested(OddsSchema, many=True, default=[])
 
 
+class FixtureOddsSchema(Schema):
+    gameId = fields.Int()
+    odds = fields.Nested(OddsSchema, many=True, default=[])
+
 class ExpectedGoalsClient:
     def __init__(self, key: str, base_url: str = 'https://football-xg-statistics.p.rapidapi.com'):
         self.base_url = base_url
@@ -103,6 +107,11 @@ class ExpectedGoalsClient:
         json = self.request(str.join('', [self.base_url, '/fixtures/', str(fixture_id), '/']))
 
         return FixtureSchema().dump(json['result'])
+
+    def upcoming_odds(self):
+        json = self.request(str.join('', [self.base_url, '/odds/upcoming/']))
+
+        return FixtureOddsSchema().dump(json['result'], many=True)
 
     def request(self, url):
         response = requests.request("GET", url, headers=self.headers)
