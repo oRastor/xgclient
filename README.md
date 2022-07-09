@@ -13,7 +13,7 @@ pip install xgclient
 
 ## Example usage
 
-Basic Usage
+Basic usage
 ```python
 from xgclient.client import ExpectedGoalsClient
 
@@ -126,6 +126,17 @@ Burnley 0.8835910224438907
 West Brom 0.8344257316399778
 Swansea 0.7753942254303168
 Huddersfield 0.7536753318584073
-
 ```
 
+Pandas dataframe usage example
+
+```python
+from xgclient.client import ExpectedGoalsClient, create_fixtures_dataframe, create_events_dataframe, create_fixture_odds
+
+client = ExpectedGoalsClient('Your API Key')
+
+season_fixtures = client.fixtures(8202)
+fixtures_df = create_fixtures_dataframe(season_fixtures)
+events_df = create_events_dataframe(season_fixtures)
+upcoming_odds_df = create_fixture_odds(client.upcoming_odds())
+```

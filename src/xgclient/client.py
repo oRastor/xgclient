@@ -1,5 +1,7 @@
 from marshmallow import Schema, fields
 import requests
+from datetime import datetime
+from pandas import DataFrame
 
 
 class CountrySchema(Schema):
@@ -48,10 +50,12 @@ class EventSchema(Schema):
     type = fields.Str()
     xg = fields.Float()
 
+
 class OddsSchema(Schema):
     type = fields.Str()
     open = fields.Float()
     last = fields.Float()
+
 
 class FixtureSchema(Schema):
     id = fields.Int()
@@ -73,6 +77,7 @@ class FixtureSchema(Schema):
 class FixtureOddsSchema(Schema):
     gameId = fields.Int()
     odds = fields.Nested(OddsSchema, many=True, default=[])
+
 
 class ExpectedGoalsClient:
     def __init__(self, key: str, base_url: str = 'https://football-xg-statistics.p.rapidapi.com'):
@@ -118,3 +123,117 @@ class ExpectedGoalsClient:
         response.raise_for_status()
 
         return response.json()
+
+
+def prepare_odds_type(type):
+    if type == 'totalUnder25':
+        return 'total_under_2_5'
+
+    if type == 'totalOver25':
+        return 'total_over_2_5'
+
+    return type
+
+
+def create_fixture_odds(items):
+    result = []
+    for item in items:
+        fixture_dict = {
+            'id': item['gameId'],
+        }
+
+        for oddsItem in item['odds']:
+            odds_type = prepare_odds_type(oddsItem['type'])
+
+            fixture_dict['odds_' + odds_type + '_open'] = oddsItem['open']
+            fixture_dict['odds_' + odds_type + '_last'] = oddsItem['last']
+
+        result.append(fixture_dict)
+
+    return DataFrame(result)
+
+
+def create_fixtures_dataframe(fixtures):
+    result = []
+    for fixture in fixtures:
+        if not fixture.get('homeTeam') or not fixture.get('awayTeam'):
+            continue
+
+        date = None
+        if isinstance(fixture['startTime'], int):
+            date = datetime.fromtimestamp(fixture['startTime'])
+
+        fixture_dict = {
+            'id': fixture['id'],
+            'status': fixture['status'],
+            'date': date,
+            'start_time': fixture['startTime'],
+            'update_time': fixture['updateTime'],
+            'country_id': fixture['country']['id'],
+            'country_name': fixture['country']['name'],
+            'tournament_id': fixture['tournament']['id'],
+            'tournament_name': fixture['tournament']['name'],
+            'season_id': fixture['season']['id'],
+            'season_name': fixture['season']['name'],
+            'home_team_id': fixture['homeTeam']['id'],
+            'home_team_name': fixture['homeTeam']['name'],
+            'away_team_id': fixture['awayTeam']['id'],
+            'away_team_name': fixture['awayTeam']['name'],
+        }
+
+        if fixture.get('homeScore'):
+            fixture_dict['home_score_final'] = fixture['homeScore']['final']
+            fixture_dict['home_score_first_half'] = fixture['homeScore']['firstHalf']
+
+        if fixture.get('awayScore'):
+            fixture_dict['away_score_final'] = fixture['awayScore']['final']
+            fixture_dict['away_score_first_half'] = fixture['awayScore']['firstHalf']
+
+        if fixture.get('duration'):
+            fixture_dict['duration_total'] = fixture['duration']['total']
+            fixture_dict['duration_first_half'] = fixture['duration']['firstHalf']
+            fixture_dict['duration_second_half'] = fixture['duration']['secondHalf']
+
+        for oddsItem in fixture['odds']:
+            odds_type = prepare_odds_type(oddsItem['type'])
+
+            fixture_dict['odds_' + odds_type + '_open'] = oddsItem['open']
+            fixture_dict['odds_' + odds_type + '_last'] = oddsItem['last']
+
+        result.append(fixture_dict)
+
+    result_df = DataFrame(result,
+                          columns=['id', 'status', 'date', 'start_time', 'update_time', 'country_id', 'country_name',
+                                   'tournament_id', 'tournament_name', 'season_id', 'season_name',
+                                   'home_team_id',
+                                   'home_team_name', 'away_team_id', 'away_team_name', 'home_score_final',
+                                   'home_score_first_half', 'away_score_final', 'away_score_first_half',
+                                   'duration_total', 'duration_first_half', 'duration_second_half',
+                                   'odds_home_open',
+                                   'odds_home_last', 'odds_draw_open', 'odds_draw_last', 'odds_away_open',
+                                   'odds_away_last', 'odds_total_over_2_5_open', 'odds_total_over_2_5_last',
+                                   'odds_total_under_2_5_open', 'odds_total_under_2_5_last'])
+
+    result_df.sort_values(by=['start_time'], inplace=True)
+
+    return result_df
+
+
+def create_events_dataframe(fixtures):
+    result = []
+    for fixture in fixtures:
+        for event in fixture['events']:
+            result.append({
+                'game_id': fixture['id'],
+                'minute': event['minute'],
+                'additional_minute': event['additionalMinute'],
+                'team_id': event['teamId'],
+                'type': event['type'],
+                'home_score': event['homeScore'],
+                'away_score': event['awayScore'],
+                'author_id': event['author']['id'],
+                'author_name': event['author']['name'],
+                'xg': event['xg'],
+            })
+
+    return DataFrame(result)

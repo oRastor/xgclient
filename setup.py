@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name="xgclient",
-    version="0.1.5",
+    version="0.1.7",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     url="https://github.com/oRastor/xgclient",
@@ -15,7 +15,7 @@ setup(
     description="Python client for football (soccer) expected goals (xG) statistics API",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    install_requires=["requests", "marshmallow"],
+    install_requires=["requests~=2.28.0", "marshmallow~=3.16.0", "pandas~=1.3.5"],
     extras_require={"dev": ["pytest", "requests_mock", "coverage", "mypy"]},
     keywords="football soccer xg expected-goals",
 )
