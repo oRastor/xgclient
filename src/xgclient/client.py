@@ -1,5 +1,4 @@
 from enum import Enum
-
 from marshmallow import Schema, fields
 import requests
 from datetime import datetime
@@ -134,7 +133,7 @@ class ExpectedGoalsClient:
         return FixtureOddsSchema().dump(json['result'], many=True)
 
     def request(self, url):
-        if self.type == Type.RAPID:
+        if self.type == Type.DIRECT:
             response = requests.request("GET", url, params={'key': self.key}, headers=self.headers)
             response.raise_for_status()
 
