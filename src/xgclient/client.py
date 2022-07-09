@@ -1,3 +1,5 @@
+from enum import Enum
+
 from marshmallow import Schema, fields
 import requests
 from datetime import datetime
@@ -79,14 +81,27 @@ class FixtureOddsSchema(Schema):
     odds = fields.Nested(OddsSchema, many=True, default=[])
 
 
+class Type(Enum):
+    RAPID = 1,
+    DIRECT = 2
+
+
 class ExpectedGoalsClient:
-    def __init__(self, key: str, base_url: str = 'https://football-xg-statistics.p.rapidapi.com'):
-        self.base_url = base_url
-        self.headers = {
-            'X-RapidAPI-Key': key,
-            'X-RapidAPI-Host': 'football-xg-statistics.p.rapidapi.com',
-            'User-Agent': 'xgclient-0.1'
-        }
+    def __init__(self, key: str, api_type: Type = Type.RAPID):
+        self.type = api_type
+        self.key = key
+        if api_type == Type.RAPID:
+            self.base_url = 'https://football-xg-statistics.p.rapidapi.com'
+            self.headers = {
+                'X-RapidAPI-Key': key,
+                'X-RapidAPI-Host': 'football-xg-statistics.p.rapidapi.com',
+                'User-Agent': 'xgclient-0.1'
+            }
+        elif api_type == Type.DIRECT:
+            self.base_url = 'https://offvariance.com/api/v2/json'
+            self.headers = {
+                'User-Agent': 'xgclient-0.1'
+            }
 
     def countries(self):
         json = self.request(str.join('', [self.base_url, '/countries/']))
@@ -119,6 +134,12 @@ class ExpectedGoalsClient:
         return FixtureOddsSchema().dump(json['result'], many=True)
 
     def request(self, url):
+        if self.type == Type.RAPID:
+            response = requests.request("GET", url, params={'key': self.key}, headers=self.headers)
+            response.raise_for_status()
+
+            return response.json()
+
         response = requests.request("GET", url, headers=self.headers)
         response.raise_for_status()
 
